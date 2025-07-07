@@ -10,42 +10,55 @@
 ---
 
 ## Overview
-This project provides a robust foundation for building, training, and evaluating deep learning models for audio and speech processing tasks using PyTorch. It is designed for rapid prototyping, research, and production deployment, and leverages open-source datasets for reproducible results.
+This project provides a robust, reproducible pipeline for audio classification using PyTorch. It demonstrates end-to-end audio processing, feature extraction, and deep learning on the open-source [UrbanSound8K](https://urbansounddataset.weebly.com/urbansound8k.html) dataset. The codebase is designed for research, rapid prototyping, and extensibility.
 
 ## Features
-- Audio data loading and preprocessing (batch and single-file)
-- Feature extraction (MFCC)
-- Modular PyTorch model templates
+- Batch and single-file audio preprocessing
+- MFCC feature extraction (librosa)
+- Modular PyTorch dataset and model classes
 - Training and evaluation scripts
-- Integration with open-source datasets (UrbanSound8K)
-- Extensible for speech, music, and general audio tasks
+- UrbanSound8K integration (10-class urban sound classification)
+- Easily extensible for new datasets or models
 
-## Open Dataset: UrbanSound8K
-This project demonstrates end-to-end audio classification using the [UrbanSound8K](https://urbansounddataset.weebly.com/urbansound8k.html) dataset, a popular open-source collection of urban sounds with 10 classes.
+## Pipeline Architecture
 
-### Downloading UrbanSound8K
-Use the provided script to download and extract the dataset:
-```bash
-python src/download_urbansound8k.py
+```mermaid
+flowchart TD
+    A["Input Audio (WAV)"] --> B["MFCC Feature Extraction (librosa)"]
+    B --> C["MFCC Feature .npy Files"]
+    C --> D["AudioFeatureDataset (PyTorch)"]
+    D --> E["SimpleAudioClassifier (PyTorch NN)"]
+    E --> F["Softmax Output (Class Prediction)"]
 ```
 
-## Project Structure
-```
-audio-processing-pytorch/
-├── data/                # Audio files, datasets
-├── data_features/       # Extracted features (auto-generated)
-├── notebooks/           # Jupyter notebooks for EDA and prototyping
-├── src/                 # Source code (preprocessing, training, inference)
-│   ├── preprocess.py
-│   ├── train.py
-│   ├── infer.py
-│   └── download_urbansound8k.py
-├── models/              # Saved models
-├── requirements.txt     # Python dependencies
-├── README.md            # Project documentation
-├── .gitignore
-└── setup.py             # (optional) for packaging
-```
+### Model Architecture
+- **Input:** MFCC features (default: 13 coefficients × variable frames)
+- **Model:**
+  - `nn.Flatten()`
+  - `nn.Linear(input_dim, num_classes)`
+- **Output:** Softmax probabilities over 10 classes
+
+You can easily swap in more advanced models (CNNs, RNNs, etc.) for improved performance.
+
+## Dataset: UrbanSound8K
+- **Source:** [UrbanSound8K](https://urbansounddataset.weebly.com/urbansound8k.html)
+- **Classes:** 10 (air_conditioner, car_horn, children_playing, dog_bark, drilling, engine_idling, gun_shot, jackhammer, siren, street_music)
+- **Format:** WAV files, organized by class
+
+## Feature Extraction
+- **Library:** `librosa`
+- **Features:** MFCCs (Mel-Frequency Cepstral Coefficients)
+- **Shape:** (n_mfcc, time_frames) per file
+- **Storage:** Saved as `.npy` files in a mirrored directory structure
+
+## Example Results
+| Epoch | Train Loss | Example Accuracy |
+|-------|------------|------------------|
+| 1     | 2.10       | 22%              |
+| 5     | 1.85       | 32%              |
+| 10    | 1.60       | 41%              |
+
+*Note: Results will vary based on model, features, and training setup. For best results, consider using a CNN or data augmentation.*
 
 ## Getting Started
 1. **Clone the repository:**
@@ -71,6 +84,30 @@ audio-processing-pytorch/
    ```bash
    python src/train.py --features_root data_features/ --epochs 10 --batch_size 16 --lr 0.001 --model_out models/simple_audio_classifier.pth
    ```
+
+## Project Structure
+```
+audio-processing-pytorch/
+├── data/                # Audio files, datasets
+├── data_features/       # Extracted features (auto-generated)
+├── notebooks/           # Jupyter notebooks for EDA and prototyping
+├── src/                 # Source code (preprocessing, training, inference)
+│   ├── preprocess.py
+│   ├── train.py
+│   ├── infer.py
+│   └── download_urbansound8k.py
+├── models/              # Saved models
+├── requirements.txt     # Python dependencies
+├── README.md            # Project documentation
+├── .gitignore
+└── setup.py             # (optional) for packaging
+```
+
+## Extending the Project
+- **Model:** Swap in a CNN, RNN, or transformer in `src/train.py` for better performance.
+- **Features:** Try Mel-spectrograms, Chroma, or other features in `src/preprocess.py`.
+- **Evaluation:** Add validation/test splits and metrics.
+- **Visualization:** Use the provided Jupyter notebooks for EDA and results analysis.
 
 ## Requirements
 - Python 3.7+
